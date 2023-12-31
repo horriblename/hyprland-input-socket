@@ -1,0 +1,5 @@
+compile_commands.json
+compile_flags.txt
+.cache/
+build/
+obj/

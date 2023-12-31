@@ -1,0 +1,11 @@
+[input-socket]
+description = "Input events socket"
+version = "0.1"
+author = "horriblename"
+
+[input-socket.build]
+output = "build/libborder-actions.so"
+steps = [
+    "meson setup build",
+	 "ninja -C build"
+]
