@@ -1,4 +1,4 @@
-project('hyprland-border-actions', 'cpp', 'c',
+project('hyprland-input-socket', 'cpp', 'c',
   version: '1.0',
   default_options: ['buildtype=release'],
 )
@@ -12,7 +12,9 @@ else
   error('Could not configure current C++ compiler (' + cpp_compiler.get_id() + ' ' + cpp_compiler.version() + ') with required C++ standard (C++23)')
 endif
 
-shared_module('border-actions', 'src/main.cpp',
+shared_module('inputsocket', 
+  'src/main.cpp',
+  'src/EventManager.cpp',
   cpp_args: ['-DWLR_USE_UNSTABLE'],
   dependencies: [
     dependency('hyprland'),
