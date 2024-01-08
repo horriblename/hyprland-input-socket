@@ -210,30 +210,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "gdk4-wayland"
-version = "0.7.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0db9102ff11e55bd65e153c1192abc21ddfa45ede90622e423d4e4a0e5d5f313"
-dependencies = [
- "gdk4",
- "gdk4-wayland-sys",
- "gio",
- "glib",
- "libc",
-]
-
-[[package]]
-name = "gdk4-wayland-sys"
-version = "0.7.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d48159be256ae0212d5a2b9884627197d08082c7168b28775b53a0f9885d5624"
-dependencies = [
- "glib-sys",
- "libc",
- "system-deps",
-]
-
-[[package]]
 name = "gio"
 version = "0.18.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -496,7 +472,7 @@ name = "hyprland-input-socket"
 version = "0.1.0"
 dependencies = [
  "cairo",
- "gdk4-wayland",
+ "gdk4",
  "gtk4",
  "gtk4-layer-shell",
 ]
