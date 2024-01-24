@@ -105,7 +105,7 @@ fn build_ui(application: &gtk4::Application) {
     css_provider.load_from_data("* {
         all: unset;
     }");
-    style.add_provider(&css_provider, gtk4::STYLE_PROVIDER_PRIORITY_APPLICATION);
+    style.add_provider(&css_provider, gtk4::STYLE_PROVIDER_PRIORITY_USER);
 
     window.set_title(Some("First GTK Program"));
 
@@ -145,8 +145,8 @@ fn build_canvas(state: Rc<RefCell<TouchPoints>>) -> gtk4::DrawingArea {
 
     let style = canvas.style_context();
     let css_provider = gtk4::CssProvider::new();
-    css_provider.load_from_data("* {background-color: transparent;}");
-    style.add_provider(&css_provider, gtk4::STYLE_PROVIDER_PRIORITY_APPLICATION);
+    css_provider.load_from_data("* {all: unset;}");
+    style.add_provider(&css_provider, gtk4::STYLE_PROVIDER_PRIORITY_USER);
 
     canvas.set_draw_func(move |_canvas, cairo_ctx: &gtk4::cairo::Context, _, _| {
         // let borrowed = state.borrow();
