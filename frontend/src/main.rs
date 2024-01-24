@@ -92,6 +92,11 @@ fn build_ui(application: &gtk4::Application) {
     let window = gtk4::ApplicationWindow::new(application);
     let state = Rc::new(RefCell::new(TouchPoints::new((0, 0))));
 
+    let Some(display) = DisplayManager::get().default_display() else {
+        println!("no display found");
+        return;
+    };
+
     window.init_layer_shell();
     window.set_layer(Layer::Overlay);
 
@@ -103,18 +108,20 @@ fn build_ui(application: &gtk4::Application) {
     style.add_provider(&css_provider, gtk4::STYLE_PROVIDER_PRIORITY_APPLICATION);
 
     window.set_title(Some("First GTK Program"));
-    window.set_default_size(350, 70);
+
+    if let Some(monitor) = display.monitors().item(0) {
+        let default_size = monitor.dynamic_cast::<gtk4::gdk::Monitor>().unwrap().geometry();
+        window.set_default_size(default_size.width(), default_size.height());
+    } else {
+        println!("no monitors found!");
+        return;
+    };
 
     let canvas = build_canvas(state.clone());
 
     window.set_child(Some(&canvas));
 
     window.present();
-
-    let Some(display) = DisplayManager::get().default_display() else {
-        println!("no display found");
-        return;
-    };
 
     let surface = window.surface();
     if display.supports_input_shapes() {
