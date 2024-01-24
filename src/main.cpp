@@ -1,6 +1,7 @@
 #include <hyprland/src/helpers/Vector2D.hpp>
 #include <hyprland/src/managers/HookSystemManager.hpp>
 #include <memory>
+#include <string>
 #define WLR_USE_UNSTABLE
 
 #include "./EventManager.hpp"
@@ -39,14 +40,20 @@ void hkOnMouseMove(void* _, SCallbackInfo& cbinfo, std::any e) {
 
 void hkOnTouchDown(void* _, SCallbackInfo& cbinfo, std::any e) {
     auto ev = std::any_cast<wlr_touch_down_event*>(e);
+
+    g_pInputSocketManager->postEvent({"touchDown", std::format("{},{},{}", ev->touch_id, ev->x, ev->y)});
 }
 
 void hkOnTouchUp(void* _, SCallbackInfo& cbinfo, std::any e) {
     auto ev = std::any_cast<wlr_touch_up_event*>(e);
+
+    g_pInputSocketManager->postEvent({"touchUp", std::to_string(ev->touch_id)});
 }
 
 void hkOnTouchMove(void* _, SCallbackInfo& cbinfo, std::any e) {
     auto ev = std::any_cast<wlr_touch_motion_event*>(e);
+
+    g_pInputSocketManager->postEvent({"touchMove", std::format("{},{},{}", ev->touch_id, ev->x, ev->y)});
 }
 
 HOOK_CALLBACK_FN gMouseMoveCallback = hkOnMouseMove;
