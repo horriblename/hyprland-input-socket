@@ -2,9 +2,12 @@
 
 use gtk4::{glib, prelude::*, cairo::{Region, RectangleInt}, gdk::DisplayManager};
 use gtk4_layer_shell::{LayerShell, Layer};
-use std::{collections::HashMap, rc::Rc, cell::RefCell};
+use std::{collections::HashMap, rc::Rc, cell::RefCell, time::{Instant, Duration}};
+
+const THROTTLE_MSEC: u64 = 17;
 
 struct TouchPoint {
+    last_moved: Option<Instant>,
     id: u32,
     pos: (f64, f64),
 }
@@ -21,8 +24,28 @@ impl TouchPoints {
             points: HashMap::new(),
         }
     }
-    pub fn update(&mut self, id: u32, pos: (f64, f64)) {
-        self.points.insert(id, TouchPoint{id, pos});
+
+    /// returns whether or not a redraw is needed
+    pub fn update(&mut self, id: u32, pos: (f64, f64)) -> bool {
+        let now = Instant::now();
+
+        if let Some(point) = self.points.get_mut(&id) {
+            // move event
+            if let Some(prev_time) = point.last_moved {
+                // second move event onwards
+                if now.duration_since(prev_time) < Duration::from_millis(THROTTLE_MSEC) {
+                    return false;
+                }
+            }
+
+            point.pos = pos;
+            point.last_moved = Some(now);
+            return true;
+        }
+
+        // first event (most likely touch down)
+        self.points.insert(id, TouchPoint{id, pos, last_moved: None});
+        return true;
     }
 
     pub fn remove(&mut self, id: u32) {
@@ -50,14 +73,14 @@ fn main_loop(state: Rc<RefCell<TouchPoints>>, window: &gtk4::ApplicationWindow) 
     let stream = UnixStream::connect("/tmp/hypr/.input.sock").unwrap();
     let mut line = String::new();
 
-    fn parse_and_move(state: &mut TouchPoints, args: &str) -> Option<()> {
+    /// returns whether a redraw should be queued, None means parsing error
+    fn parse_and_move(state: &mut TouchPoints, args: &str) -> Option<bool> {
         let mut args_iter = args.split(",");
         let id: u32 = args_iter.next()?.parse().ok()?;
         let x: f64 = args_iter.next()?.parse().ok()?;
         let y: f64 = args_iter.next()?.parse().ok()?;
 
-        state.update(id, (x, y));
-        Some(())
+        Some(state.update(id, (x, y)))
     }
 
     for c in stream.bytes() {
@@ -72,18 +95,20 @@ fn main_loop(state: Rc<RefCell<TouchPoints>>, window: &gtk4::ApplicationWindow) 
         let Some(event_name) = line_iter.next() else {continue;};
         let Some(args) = line_iter.next() else {continue;};
 
-        match event_name {
-            "touchDown" | "touchMove" => {parse_and_move(&mut state.borrow_mut(), args);},
+        let redraw = match event_name {
+            "touchDown" | "touchMove" => parse_and_move(&mut state.borrow_mut(), args).unwrap_or(false),
             "touchUp" => {
                 let Ok(id) = args.parse::<u32>() else { continue; };
                 state.borrow_mut().remove(id);
+                true
             },
-            _ => {},
-        }
-        println!("fingers: {}", state.borrow().points.len());
+            _ => false,
+        };
 
-        window.queue_draw();
-        gtk4::glib::MainContext::default().iteration(true);
+        if redraw {
+            window.child().unwrap().queue_draw();
+            gtk4::glib::MainContext::default().iteration(true);
+        }
         line.clear();
     }
 }
