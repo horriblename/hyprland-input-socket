@@ -4,7 +4,7 @@ use gtk4::{glib, prelude::*, cairo::{Region, RectangleInt}, gdk::DisplayManager}
 use gtk4_layer_shell::{LayerShell, Layer};
 use std::{collections::HashMap, rc::Rc, cell::RefCell, time::{Instant, Duration}};
 
-const THROTTLE_MSEC: u64 = 17;
+const THROTTLE_MSEC: u64 = 33;
 
 struct TouchPoint {
     last_moved: Option<Instant>,
