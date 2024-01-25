@@ -2,6 +2,7 @@
 #include "EventManager.hpp"
 #include "hyprland/src/debug/Log.hpp"
 
+#include <cstdio>
 #include <errno.h>
 #include <fcntl.h>
 #include <netinet/in.h>
@@ -20,6 +21,7 @@
 EventManager::EventManager() {}
 EventManager::~EventManager() {
     // TODO
+    std::remove("/tmp/hypr/.input.sock");
 }
 
 int fdHandleWrite(int fd, uint32_t mask, void* data) {
@@ -100,6 +102,9 @@ void EventManager::startThread(std::string socket_path) {
                     {ACCEPTEDCONNECTION,
                      wl_event_loop_add_fd(g_pCompositor->m_sWLEventLoop, ACCEPTEDCONNECTION, WL_EVENT_READABLE,
                                           fdHandleWrite, &m_dAcceptedSocketFDs)});
+            } else {
+                // I'm too lazy to handle shit properly so my exit strategy is delete the socket
+                break;
             }
         }
 
